@@ -1,0 +1,74 @@
+local key = "GIAHUY-HUB-ZEPHYS-KEY" -- Key đúng
+local userKey = ""
+
+-- Tạo GUI
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Frame = Instance.new("Frame", ScreenGui)
+local TextLabel = Instance.new("TextLabel", Frame)
+local TextBox = Instance.new("TextBox", Frame)
+local CheckButton = Instance.new("TextButton", Frame)
+local GetKeyButton = Instance.new("TextButton", Frame)
+
+-- Thiết kế GUI
+ScreenGui.Name = "KeySystem"
+Frame.Size = UDim2.new(0, 300, 0, 200)
+Frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BorderSizePixel = 0
+
+TextLabel.Text = "Nhập Key để tiếp tục"
+TextLabel.Size = UDim2.new(1, 0, 0, 50)
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.BackgroundTransparency = 1
+TextLabel.Font = Enum.Font.SourceSansBold
+TextLabel.TextSize = 24
+TextLabel.Parent = Frame
+
+TextBox.PlaceholderText = "Dán key vào đây..."
+TextBox.Size = UDim2.new(1, -40, 0, 40)
+TextBox.Position = UDim2.new(0, 20, 0, 60)
+TextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.Font = Enum.Font.SourceSans
+TextBox.TextSize = 18
+TextBox.Parent = Frame
+
+CheckButton.Text = "Kiểm tra key"
+CheckButton.Size = UDim2.new(0.5, -25, 0, 40)
+CheckButton.Position = UDim2.new(0, 20, 0, 120)
+CheckButton.BackgroundColor3 = Color3.fromRGB(0, 170, 127)
+CheckButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CheckButton.Font = Enum.Font.SourceSansBold
+CheckButton.TextSize = 18
+CheckButton.Parent = Frame
+
+GetKeyButton.Text = "Lấy key"
+GetKeyButton.Size = UDim2.new(0.5, -25, 0, 40)
+GetKeyButton.Position = UDim2.new(0.5, 5, 0, 120)
+GetKeyButton.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+GetKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+GetKeyButton.Font = Enum.Font.SourceSansBold
+GetKeyButton.TextSize = 18
+GetKeyButton.Parent = Frame
+
+-- Xử lý Get Key
+GetKeyButton.MouseButton1Click:Connect(function()
+    setclipboard("https://link-center.net/1353243/gia-huy-hub") -- Đổi link này thành của bạn
+    TextLabel.Text = "Link đã copy! Vui lòng lấy key và dán vào."
+end)
+
+-- Xử lý kiểm tra key
+CheckButton.MouseButton1Click:Connect(function()
+    userKey = TextBox.Text
+    if userKey == key then
+        TextLabel.Text = "Key đúng! Đang chạy script..."
+        wait(1)
+        ScreenGui:Destroy()
+
+        -- >>> Gọi script chính tại đây:
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/giahuy-roy/Farm/refs/heads/main/ffg.txt"))()
+
+    else
+        TextLabel.Text = "Key sai! Hãy thử lại."
+    end
+end)
