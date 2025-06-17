@@ -1,0 +1,165 @@
+--[[
+---------------------------------------------------------------------
+  ██████╗  █████╗ ██╗   ██╗██╗  ██╗██╗   ██╗
+ ██╔════╝ ██╔══██╗██║   ██║██║ ██╔╝╚██╗ ██╔╝
+ ██║  ███╗███████║██║   ██║█████╔╝  ╚████╔╝ 
+ ██║   ██║██╔══██║██║   ██║██╔═██╗   ╚██╔╝  
+ ╚██████╔╝██║  ██║╚██████╔╝██║  ██╗   ██║   
+  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   
+---------------------------------------------------------------------
+  GiaHuy Fix Lag Hub – Universal Roblox Lag Reducer
+  Image Background ID: 100663458322564
+  Executor Tested: Arceus X (v2025)
+  Features:
+   • One‑click FPS & Lag Boost (disables particles, textures, decals, shadows…)
+   • Dynamic FPS Cap (30‑240)
+   • Lighting Optimizer (Compatibility tech, global fog removal, low shadows)
+   • Water & Terrain simplification
+   • Auto‑Anti‑AFK (prevent kick while idling)
+   • Restore Defaults button
+---------------------------------------------------------------------
+]]--
+
+repeat task.wait() until game:IsLoaded()
+
+-- // Services & Shortcuts //--------------------------------------------------
+local Players          = game:GetService("Players")
+local Lighting         = game:GetService("Lighting")
+local TweenService     = game:GetService("TweenService")
+local RunService       = game:GetService("RunService")
+local HttpService      = game:GetService("HttpService")
+local ReplicatedStorage= game:GetService("ReplicatedStorage")
+local StarterGui       = game:GetService("StarterGui")
+local VirtualInput     = game:GetService("VirtualInputManager")
+local LocalPlayer      = Players.LocalPlayer
+
+-- // Global Table -------------------------------------------------------------
+getgenv().GH_FixLagSettings = {
+    Enabled       = false,
+    FPSCap        = 90,
+    AntiAFK       = true,
+    Original      = {}, -- store original settings to restore
+}
+
+-- // Helper : Save / Restore Lighting Properties -----------------------------
+local function cacheLighting()
+    for _,prop in ipairs({"Brightness","FogEnd","Technology","Ambient","OutdoorAmbient"}) do
+        GH_FixLagSettings.Original[prop] = Lighting[prop]
+    end
+end
+
+local function restoreLighting()
+    for prop,val in pairs(GH_FixLagSettings.Original) do
+        Lighting[prop] = val
+    end
+end
+
+-- // Core Optimizer Functions -------------------------------------------------
+local function disableDescendants()
+    -- Remove textures & decals
+    for _,v in ipairs(game:GetDescendants()) do
+        if v:IsA("Texture") or v:IsA("Decal") or v:IsA("Beam") then
+            v.Transparency = 1
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") then
+            v.Enabled = false
+        elseif v:IsA("ShirtGraphic") then
+            v:Destroy()
+        end
+    end
+end
+
+local function optimizeLighting()
+    cacheLighting()
+    pcall(function()
+        sethiddenproperty(Lighting,"Technology", Enum.Technology.Compatibility)
+    end)
+    Lighting.Brightness   = 1
+    Lighting.GlobalShadows= false
+    Lighting.FogEnd       = 1e5
+    Lighting.Ambient      = Color3.new(1,1,1)
+    Lighting.OutdoorAmbient = Color3.new(1,1,1)
+end
+
+local function optimizeTerrain()
+    local Terrain = workspace:FindFirstChildOfClass("Terrain")
+    if Terrain then
+        Terrain.WaterWaveSize = 0
+        Terrain.WaterWaveSpeed= 0
+        Terrain.WaterReflectance = 0
+        Terrain.WaterTransparency = 1
+    end
+end
+
+local function applyFPSCap(cap)
+    if setfpscap then setfpscap(cap) end
+end
+
+local function fixLag()
+    if GH_FixLagSettings.Enabled then return end
+    GH_FixLagSettings.Enabled = true
+    disableDescendants()
+    optimizeLighting()
+    optimizeTerrain()
+    applyFPSCap(GH_FixLagSettings.FPSCap)
+end
+
+local function restoreGame()
+    if not GH_FixLagSettings.Enabled then return end
+    GH_FixLagSettings.Enabled = false
+    restoreLighting()
+    applyFPSCap(240)
+    StarterGui:SetCore("SendNotification",{Title="GiaHuy Hub",Text="Đã khôi phục đồ hoạ gốc!",Duration=5})
+end
+
+-- // Anti‑AFK -----------------------------------------------------------------
+if GH_FixLagSettings.AntiAFK then
+    LocalPlayer.Idled:Connect(function()
+        VirtualInput:SendMouseButtonEvent(0,0,0,true,game,0)
+    end)
+end
+
+-- // UI (Kavo) ----------------------------------------------------------------
+local Kavo = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Kavo.CreateLib("GiaHuy Fix Lag Hub","BloodTheme")
+
+-- Background image
+pcall(function()
+    Window.BackgroundImage = "rbxassetid://100663458322564"
+end)
+
+local MainTab   = Window:NewTab("Main")
+local SettingsTab = Window:NewTab("Settings")
+
+local main = MainTab:NewSection("Boost & Restore")
+local set  = SettingsTab:NewSection("Config")
+
+main:NewButton("🚀 Boost FPS & Giảm Lag","Tắt hiệu ứng, tối ưu lighting",function()
+    fixLag()
+    StarterGui:SetCore("SendNotification",{Title="GiaHuy Hub",Text="Boost FPS thành công!",Duration=4})
+end)
+
+main:NewButton("♻️ Khôi phục đồ hoạ","Trả lại thiết lập gốc",function()
+    restoreGame()
+end)
+
+set:NewSlider("Giới hạn FPS",240,30,function(v)
+    GH_FixLagSettings.FPSCap = v
+    if GH_FixLagSettings.Enabled then applyFPSCap(v) end
+end)
+
+set:NewToggle("Anti‑AFK", "Ngăn kick khi afk", function(b)
+    GH_FixLagSettings.AntiAFK = b
+end)
+
+-- // Real‑time FPS Display ----------------------------------------------------
+local fpsLabel = main:NewLabel("FPS: 0")
+local lastTick = tick()
+RunService.RenderStepped:Connect(function()
+    local dt   = tick() - lastTick
+    lastTick   = tick()
+    local fps  = math.floor(1/dt)
+    fpsLabel:UpdateLabel("FPS: "..fps)
+end)
+
+-- // End of Script ------------------------------------------------------------
+StarterGui:SetCore("SendNotification",{Title="GiaHuy Hub",Text="Fix Lag Hub đã load!",Duration=6})
